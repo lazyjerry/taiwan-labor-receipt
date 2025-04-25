@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<!-- 基本 -->
+		<title>勞務報酬單產生器︱線上自動計算稅額・快速匯出 PDF</title>
+		<meta
+			name="description"
+			content="一鍵產生專業勞務報酬單，內建薪資／稿費稅率與二代健保試算，支援支票、匯款、現金等付款方式，完成後可下載 A4 PDF。"
+		/>
+		<meta name="keywords" content="勞務報酬單,勞報單,稅額試算,二代健保,扣繳,PDF 產生器,台灣,薪資所得" />
+		<meta name="robots" content="index,follow" />
+		<link rel="canonical" href="/" />
+
+		<!-- Favicon / Logo -->
+		<link rel="icon" href="/logo.png" type="image/png" sizes="32x32" />
+
+		<!-- Open Graph -->
+		<meta property="og:type" content="website" />
+		<meta property="og:site_name" content="勞務報酬單產生器" />
+		<meta property="og:title" content="勞務報酬單產生器︱線上自動計算稅額・快速匯出 PDF" />
+		<meta
+			property="og:description"
+			content="快速填寫並下載勞務報酬單：自動計算稅款、健保補充費，支援多種付款方式與 JSON 匯出。"
+		/>
+		<meta property="og:url" content="/" />
+		<meta property="og:image" content="/logo.png" />
+		<meta property="og:image:alt" content="勞務報酬單產生器 Logo" />
+
+		<!-- Twitter Card -->
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content="勞務報酬單產生器︱線上自動計算稅額・快速匯出 PDF" />
+		<meta name="twitter:description" content="一鍵產生專業勞務報酬單，內建稅率與健保試算，完成後可下載 PDF。" />
+		<meta name="twitter:image" content="/logo.png" />
+
+		<!-- 結構化資料（JSON-LD） -->
+		<script type="application/ld+json">
+			{
+				"@context": "https://schema.org",
+				"@type": "SoftwareApplication",
+				"name": "勞務報酬單產生器",
+				"applicationCategory": "FinanceApplication",
+				"operatingSystem": "All",
+				"image": "/logo.png",
+				"url": "/",
+				"description": "線上快速產生勞務報酬單，提供薪資/稿費稅額計算與 PDF 下載。",
+				"offers": {
+					"@type": "Offer",
+					"price": "0",
+					"priceCurrency": "TWD"
+				}
+			}
+		</script>
+		<script src="https://cdn.tailwindcss.com"></script>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+		<link rel="stylesheet" href="/pdf.css" />
+	</head>
+	<body class="compact">
+		<div id="quoteContainer">
+			<div class="header">
+				<h1>勞務報酬單</h1>
+			</div>
+			<div class="section">
+				<div class="section-title">一、公司資訊</div>
+				<div class="two-columns">
+					<div class="column">
+						<div class="label">公司名稱</div>
+						<div class="value" id="pdf-company-name">{{companyName}}</div>
+					</div>
+
+          <div class="column">
+            <div class="label">日期</div>
+            <div class="value" id="pdf-date">{{today}}</div>
+          </div>
+          <div class="column">
+            <div class="label">表單編號</div>
+            <div class="value" id="pdf-form-number">{{formNumber}}</div>
+          </div>
+			</div>
+
+			<div class="section">
+				<div class="section-title">二、領款人資訊</div>
+				<div class="two-columns">
+					<div class="column">
+						<div class="label">姓名</div>
+						<div class="value" id="pdf-person-name">{{personName}}</div>
+					</div>
+					<div class="column">
+						<div class="label">國籍/居住別</div>
+						<div class="value" id="pdf-resident-type">{{residentType}}</div>
+					</div>
+					<!-- </div>
+				<div class="two-columns"> -->
+					<div class="column">
+						<div class="label">證件別</div>
+						<div class="value" id="pdf-id-type">{{idType}}</div>
+					</div>
+					<div class="column">
+						<div class="label">證號</div>
+						<div class="value" id="pdf-id-number">{{idNumber}}</div>
+					</div>
+				</div>
+				<div class="two-columns">
+					<div class="column">
+						<div class="label">戶籍地址</div>
+						<div class="value" id="pdf-addr-reg">{{addrReg}}</div>
+					</div>
+				</div>
+				<div class="two-columns">
+					<div class="column">
+						<div class="label">通訊地址</div>
+						<div class="value" id="pdf-addr-comm">{{addrComm}}</div>
+					</div>
+				</div>
+				<div class="two-columns">
+					<div class="column">
+						<div class="label">連絡電話</div>
+						<div class="value" id="pdf-phone">{{phone}}</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="section">
+				<div class="section-title">三、所得資訊</div>
+				<div class="two-columns">
+					<div class="column">
+						<div class="label">所得類別</div>
+						<div class="value" id="pdf-income-type">{{incomeType}}</div>
+					</div>
+					<div class="column">
+						<div class="label">所得總額</div>
+						<div class="value" id="pdf-income-amount">{{incomeAmount}} 元</div>
+					</div>
+					<div class="column">
+						<div class="label">免扣二代健保</div>
+						<div class="value" id="pdf-skip-nhi">{{skipNHI}}</div>
+					</div>
+				</div>
+
+				<div class="payment-summary">
+					<div class="payment-item">
+						<div class="title">代扣稅款</div>
+						<div class="amount" id="pdf-tax-deduct">{{taxDeduct}} 元</div>
+					</div>
+					<div class="payment-item">
+						<div class="title">二代健保費</div>
+						<div class="amount" id="pdf-nhi-deduct">{{nhiDeduct}} 元</div>
+					</div>
+					<div class="payment-item highlight">
+						<div class="title">應發淨額</div>
+						<div class="amount" id="pdf-net-pay">{{netPay}} 元</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="section" id="pay-section">
+				<div class="section-title">四、付款方式</div>
+				<div class="two-columns">
+					<div class="column">
+						<div class="label">付款方式</div>
+						<div class="value" id="pdf-pay-method">{{payMethod}}</div>
+					</div>
+				</div>
+
+				<div id="pdf-check-options">
+					<div class="two-columns">
+						<div class="column">
+							<div class="label">支票領取方式</div>
+							<div class="value" id="pdf-check-receive">{{checkReceive}}</div>
+						</div>
+					</div>
+					<div id="pdf-mail-addr-box">
+						<div class="two-columns">
+							<div class="column">
+								<div class="label">掛號寄送地址</div>
+								<div class="value" id="pdf-mail-addr">{{mailAddr}}</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div id="pdf-bank-options">
+					<div class="two-columns">
+						<div class="column">
+							<div class="label">銀行</div>
+							<div class="value" id="pdf-bank-name">{{bankName}}</div>
+						</div>
+						<div class="column">
+							<div class="label">分行</div>
+							<div class="value" id="pdf-bank-branch">{{bankBranch}}</div>
+						</div>
+
+						<div class="column">
+							<div class="label">帳號</div>
+							<div class="value" id="pdf-bank-account">{{bankAccount}}</div>
+						</div>
+						<div class="column">
+							<div class="label">戶名</div>
+							<div class="value" id="pdf-bank-holder">{{bankHolder}}</div>
+						</div>
+					</div>
+				</div>
+
+				<div id="pdf-cash-options">
+					<div class="two-columns">
+						<div class="column">
+							<div class="label">現金支付確認</div>
+							<div class="value">已確認收到支付本人之報酬</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="signature-area">
+				<div class="signature-box">
+					<div>領款人簽章：</div>
+					<div class="signature-line"></div>
+				</div>
+				<div class="signature-box">
+					<div>經辦人簽章：</div>
+					<div class="signature-line"></div>
+				</div>
+			</div>
+
+			<div class="footer">
+				<p>© 2025 勞務報酬單產生器 - 實際稅額計算以稅務機關核定為準</p>
+			</div>
+		</div>
+
+		<div class="fab" onclick="downloadPDF()">
+			<i class="fas fa-download"></i>
+			<span>下載 PDF</span>
+		</div>
+
+		<!-- 載入 html2pdf.js CDN -->
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+		<script>
+			function downloadPDF() {
+				const element = document.getElementById("quoteContainer");
+				// 檢查所有 <img> 是否為 Base64
+				const imgs = element.querySelectorAll("img");
+				let hasNonBase64 = false;
+				imgs.forEach((img) => {
+					const src = img.getAttribute("src") || "";
+					if (!src.startsWith("data:")) {
+						hasNonBase64 = true;
+					}
+				});
+				if (hasNonBase64) {
+					const confirmed = confirm("圖片為網址，可能無法正常顯示在 PDF 中，確認是否要下載？");
+					if (!confirmed) return;
+				}
+				const opt = {
+					margin: [10, 10, 10, 10],
+					filename: `勞報單_${document.getElementById("pdf-form-number").textContent}.pdf`,
+					image: { type: "jpeg", quality: 1 },
+					html2canvas: {
+						scale: 1.5, // 提升解析度，同時仍維持單頁
+						useCORS: true,
+					},
+					jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+					pagebreak: { mode: ["avoid-all"] }, // ⭐ 關鍵：不要自動斷頁
+				};
+				html2pdf().set(opt).from(element).save();
+			}
+
+			function cleanPaySection() {
+				const payMethodText = document.getElementById("pdf-pay-method").textContent.trim();
+				const sections = { check: "pdf-check-options", bank: "pdf-bank-options", cash: "pdf-cash-options" };
+				// 先隱藏全部
+				Object.values(sections).forEach((id) => {
+					document.getElementById(id).style.display = "none";
+				});
+
+				// 映射中文→key
+				const map = { 支票: "check", 匯款: "bank", 現金: "cash" };
+				const key = map[payMethodText] || "";
+				if (!key) {
+					document.getElementById("pay-section").style.display = "none";
+					return;
+				}
+
+				console.log("key", key);
+				// 顯示對應區塊
+				document.getElementById(sections[key]).style.display = "block";
+				console.log("sections", sections[key]);
+				// 隱藏無值的 .value 行
+				document.querySelectorAll("#pay-section .value").forEach((v) => {
+					if (!v.textContent.trim()) v.parentElement.parentElement.style.display = "none";
+				});
+			}
+			window.onload = () => {
+				cleanPaySection();
+			};
+		</script>
+	</body>
+</html>

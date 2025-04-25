@@ -1,0 +1,13 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "taiwan-labor-receipt",
+	"main": "src/index.ts",
+	"compatibility_date": "2025-04-25",
+	"observability": {
+		"enabled": true
+	},
+	"assets": {
+		"directory": "./public",
+		"binding": "ASSETS"
+	}
+}

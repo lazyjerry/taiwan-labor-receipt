@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<!-- 基本 -->
+		<title>勞務報酬單產生器︱線上自動計算稅額・快速匯出 PDF</title>
+		<meta
+			name="description"
+			content="一鍵產生專業勞務報酬單，內建薪資／稿費稅率與二代健保試算，支援支票、匯款、現金等付款方式，完成後可下載 A4 PDF。"
+		/>
+		<meta name="keywords" content="勞務報酬單,勞報單,稅額試算,二代健保,扣繳,PDF 產生器,台灣,薪資所得" />
+		<meta name="robots" content="index,follow" />
+		<link rel="canonical" href="/" />
+
+		<!-- Favicon / Logo -->
+		<link rel="icon" href="/logo.png" type="image/png" sizes="32x32" />
+
+		<!-- Open Graph -->
+		<meta property="og:type" content="website" />
+		<meta property="og:site_name" content="勞務報酬單產生器" />
+		<meta property="og:title" content="勞務報酬單產生器︱線上自動計算稅額・快速匯出 PDF" />
+		<meta
+			property="og:description"
+			content="快速填寫並下載勞務報酬單：自動計算稅款、健保補充費，支援多種付款方式與 JSON 匯出。"
+		/>
+		<meta property="og:url" content="/" />
+		<meta property="og:image" content="/logo.png" />
+		<meta property="og:image:alt" content="勞務報酬單產生器 Logo" />
+
+		<!-- Twitter Card -->
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content="勞務報酬單產生器︱線上自動計算稅額・快速匯出 PDF" />
+		<meta name="twitter:description" content="一鍵產生專業勞務報酬單，內建稅率與健保試算，完成後可下載 PDF。" />
+		<meta name="twitter:image" content="/logo.png" />
+
+		<!-- 結構化資料（JSON-LD） -->
+		<script type="application/ld+json">
+			{
+				"@context": "https://schema.org",
+				"@type": "SoftwareApplication",
+				"name": "勞務報酬單產生器",
+				"applicationCategory": "FinanceApplication",
+				"operatingSystem": "All",
+				"image": "/logo.png",
+				"url": "/",
+				"description": "線上快速產生勞務報酬單，提供薪資/稿費稅額計算與 PDF 下載。",
+				"offers": {
+					"@type": "Offer",
+					"price": "0",
+					"priceCurrency": "TWD"
+				}
+			}
+		</script>
+		<!-- Tailwind CSS -->
+		<script src="https://cdn.tailwindcss.com"></script>
+		<!-- Font Awesome 圖標 -->
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+		<script>
+			tailwind.config = {
+				theme: {
+					extend: {
+						colors: {
+							primary: {
+								50: "#eff6ff",
+								100: "#dbeafe",
+								200: "#bfdbfe",
+								300: "#93c5fd",
+								400: "#60a5fa",
+								500: "#3b82f6",
+								600: "#2563eb",
+								700: "#1d4ed8",
+								800: "#1e40af",
+								900: "#1e3a8a",
+							},
+							accent: {
+								50: "#fffbeb",
+								100: "#fef3c7",
+								200: "#fde68a",
+								300: "#fcd34d",
+								400: "#fbbf24",
+								500: "#f59e0b",
+								600: "#d97706",
+								700: "#b45309",
+								800: "#92400e",
+								900: "#78350f",
+							},
+						},
+						fontFamily: {
+							sans: ['"Noto Sans TC"', "sans-serif"],
+						},
+					},
+				},
+			};
+		</script>
+		<!-- Google Fonts -->
+		<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet" />
+		<!-- @import url("https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap"); -->
+		<link rel="stylesheet" href="/style.css" />
+	</head>
+	<body class="bg-gray-50 min-h-screen">
+		<div class="max-w-4xl mx-auto px-4 py-8">
+			<!-- 標題區 -->
+			<div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+				<div>
+					<h1 class="text-3xl font-bold text-gray-800 flex items-center">
+						<i class="fas fa-file-invoice-dollar text-primary-600 mr-3"></i>
+						勞務報酬單產生器
+					</h1>
+					<p class="text-gray-500 mt-2">快速產生專業的勞務報酬單，自動計算稅款與健保費</p>
+				</div>
+				<div class="mt-4 md:mt-0 bg-white p-3 rounded-lg shadow-sm border border-gray-200">
+					<div class="flex items-center">
+						<span class="text-sm font-medium text-gray-500 mr-2">表單編號：</span>
+						<span id="formNumber" class="font-mono font-bold text-primary-700"></span>
+					</div>
+					<div class="text-xs text-gray-400 mt-1">系統自動產生</div>
+				</div>
+			</div>
+
+			<!-- 表單主體 -->
+			<form id="payoutForm" class="bg-white rounded-xl shadow-sm overflow-hidden">
+				<!-- 1. 表頭資訊 -->
+				<section class="form-section p-6 border-b border-gray-100">
+					<div class="flex items-center mb-6">
+						<div class="step-badge bg-primary-100 text-primary-700 mr-3">1</div>
+						<h2 class="text-xl font-semibold text-gray-800">表頭資訊</h2>
+					</div>
+
+					<div class="grid md:grid-cols-2 gap-6">
+						<div>
+							<label for="companyName" class="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+								公司名稱
+								<span class="text-red-500 ml-1">*</span>
+								<div class="tooltip ml-2">
+									<i class="fas fa-info-circle text-gray-400 text-sm"></i>
+									<span class="tooltip-text">請輸入公司全銜，與統一發票上名稱一致</span>
+								</div>
+							</label>
+							<div class="relative">
+								<input
+									id="companyName"
+									required
+									class="w-full input-focus px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none"
+									placeholder="請輸入公司全銜"
+								/>
+								<div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+									<i class="fas fa-building text-gray-400"></i>
+								</div>
+							</div>
+						</div>
+
+						<div>
+							<label for="formNumber" class="block text-sm font-medium text-gray-700 mb-1">表單編號</label>
+							<input
+								id="formNumberDisplay"
+								readonly
+								class="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
+							/>
+						</div>
+					</div>
+				</section>
+
+				<!-- 2. 領款人基本資料 -->
+				<section class="form-section p-6 border-b border-gray-100">
+					<div class="flex items-center mb-6">
+						<div class="step-badge bg-primary-100 text-primary-700 mr-3">2</div>
+						<h2 class="text-xl font-semibold text-gray-800">領款人基本資料</h2>
+					</div>
+
+					<div class="grid md:grid-cols-1 gap-6 mb-4">
+						<!-- 美化后的姓名输入 -->
+						<div class="name-input-container">
+							<label for="personName" class="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+								姓名
+								<span class="text-red-500 ml-1">*</span>
+							</label>
+							<input
+								id="personName"
+								required
+								class="w-full input-focus px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none"
+								placeholder="請輸入領款人姓名"
+							/>
+						</div>
+					</div>
+
+					<div class="grid md:grid-cols-1 gap-6 mb-4">
+						<!-- 美化后的國籍‧居住別选项 -->
+						<div class="space-y-2">
+							<p class="text-sm font-medium text-gray-700 flex items-center">
+								國籍‧居住別
+								<span class="text-red-500 ml-1">*</span>
+							</p>
+							<div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+								<label class="resident-option">
+									<input type="radio" name="residentType" value="resident" required class="sr-only" checked />
+									<span
+										class="radio-label flex items-center before:w-4 before:h-4 before:rounded-full before:border before:border-gray-300 before:mr-2"
+									>
+										本國籍
+									</span>
+								</label>
+								<label class="resident-option">
+									<input type="radio" name="residentType" value="nonResidentTW" class="sr-only" />
+									<span
+										class="radio-label flex items-center before:w-4 before:h-4 before:rounded-full before:border before:border-gray-300 before:mr-2"
+									>
+										本國籍但未在台居住
+									</span>
+								</label>
+								<label class="resident-option">
+									<input type="radio" name="residentType" value="foreign183" class="sr-only" />
+									<span
+										class="radio-label flex items-center before:w-4 before:h-4 before:rounded-full before:border before:border-gray-300 before:mr-2"
+									>
+										外國籍在台滿183天
+									</span>
+								</label>
+								<label class="resident-option">
+									<input type="radio" name="residentType" value="foreignNot183" class="sr-only" />
+									<span
+										class="radio-label flex items-center before:w-4 before:h-4 before:rounded-full before:border before:border-gray-300 before:mr-2"
+									>
+										外國籍在台未滿183天
+									</span>
+								</label>
+							</div>
+						</div>
+					</div>
+
+					<div class="grid md:grid-cols-1 gap-6">
+						<div class="space-y-2">
+							<p class="text-sm font-medium text-gray-700 flex items-center">
+								證件別
+								<span class="text-red-500 ml-1">*</span>
+							</p>
+							<div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+								<label class="radio-btn flex items-center p-2 border border-gray-200 rounded-lg cursor-pointer">
+									<input type="radio" name="idType" value="idcard" required class="sr-only" checked />
+									<span
+										class="radio-label flex items-center before:w-4 before:h-4 before:rounded-full before:border before:border-gray-300 before:mr-2"
+									>
+										身分證
+									</span>
+								</label>
+								<label class="radio-btn flex items-center p-2 border border-gray-200 rounded-lg cursor-pointer">
+									<input type="radio" name="idType" value="arc" class="sr-only" />
+									<span
+										class="radio-label flex items-center before:w-4 before:h-4 before:rounded-full before:border before:border-gray-300 before:mr-2"
+									>
+										居留證
+									</span>
+								</label>
+								<label class="radio-btn flex items-center p-2 border border-gray-200 rounded-lg cursor-pointer">
+									<input type="radio" name="idType" value="passport" class="sr-only" />
+									<span
+										class="radio-label flex items-center before:w-4 before:h-4 before:rounded-full before:border before:border-gray-300 before:mr-2"
+									>
+										護照
+									</span>
+								</label>
+							</div>
+						</div>
+
+						<div>
+							<label for="idNumber" class="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+								證號
+								<span class="text-red-500 ml-1">*</span>
+							</label>
+							<div class="relative">
+								<input
+									id="idNumber"
+									required
+									class="w-full input-focus px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none"
+									placeholder="請輸入證件號碼"
+								/>
+								<div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+									<i class="fas fa-id-card text-gray-400"></i>
+								</div>
+							</div>
+						</div>
+
+						<div class="md:col-span-2">
+							<label for="addrReg" class="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+								戶籍地址
+								<span class="text-red-500 ml-1">*</span>
+							</label>
+							<input
+								type="text"
+								id="addrReg"
+								required
+								class="w-full input-focus px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none"
+								rows="2"
+								placeholder="請輸入完整戶籍地址"
+							/>
+						</div>
+
+						<div class="md:col-span-2">
+							<label for="addrComm" class="block text-sm font-medium text-gray-700 mb-1">
+								通訊地址
+								<span class="text-gray-400 text-xs ml-1">(若與戶籍地址相同可不填)</span>
+							</label>
+							<input
+								type="text"
+								id="addrComm"
+								class="w-full input-focus px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none"
+								rows="2"
+								placeholder="請輸入通訊地址"
+							/>
+						</div>
+
+						<div>
+							<label for="phone" class="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+								連絡電話
+								<span class="text-red-500 ml-1">*</span>
+							</label>
+							<div class="relative">
+								<input
+									id="phone"
+									required
+									class="w-full input-focus px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none"
+									placeholder="09xx-xxx-xxx"
+								/>
+								<div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+									<i class="fas fa-phone text-gray-400"></i>
+								</div>
+							</div>
+						</div>
+					</div>
+				</section>
+
+				<!-- 3. 所得與計算 -->
+				<section class="form-section p-6 border-b border-gray-100 bg-gray-50">
+					<div class="flex items-center mb-6">
+						<div class="step-badge bg-primary-100 text-primary-700 mr-3">3</div>
+						<h2 class="text-xl font-semibold text-gray-800">所得與計算</h2>
+					</div>
+
+					<div class="grid md:grid-cols-2 gap-6">
+						<div>
+							<label for="incomeType" class="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+								所得類別
+								<span class="text-red-500 ml-1">*</span>
+								<div class="tooltip ml-2">
+									<i class="fas fa-info-circle text-gray-400 text-sm"></i>
+									<span class="tooltip-text">不同類別適用不同稅率規則</span>
+								</div>
+							</label>
+							<div class="relative">
+								<select
+									id="incomeType"
+									required
+									class="w-full input-focus px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none appearance-none"
+								>
+									<option value="50" selected>(50) 薪資所得丨不固定性質</option>
+									<option value="9A">(9A) 執行業務</option>
+									<option value="9B">(9B) 執行業務丨18萬免稅額</option>
+									<option value="92">(92) 其他所得</option>
+								</select>
+								<div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+									<i class="fas fa-chevron-down text-gray-400"></i>
+								</div>
+							</div>
+						</div>
+
+						<div class="flex items-end">
+							<label class="inline-flex items-center gap-2 p-2 border border-gray-200 rounded-lg bg-white">
+								<input
+									type="checkbox"
+									id="skipNHI"
+									class="h-5 w-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+								/>
+								<span class="text-sm text-gray-700">免扣二代健保</span>
+								<div class="tooltip ml-1">
+									<i class="fas fa-info-circle text-gray-400 text-sm"></i>
+									<span class="tooltip-text">勾選後將不計算二代健保補充保費</span>
+								</div>
+							</label>
+						</div>
+
+						<div>
+							<label for="incomeAmount" class="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+								總金額 (NT$)
+								<span class="text-red-500 ml-1">*</span>
+							</label>
+							<div class="relative">
+								<input
+									type="number"
+									id="incomeAmount"
+									min="0"
+									step="1"
+									required
+									class="w-full input-focus px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none"
+									placeholder="0"
+								/>
+							</div>
+						</div>
+
+						<div class="flex items-end">
+							<button
+								type="button"
+								id="calcBtn"
+								class="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-lg shadow-sm transition flex items-center justify-center gap-2 flex-1"
+							>
+								<i class="fas fa-calculator"></i>
+								重新計算
+							</button>
+						</div>
+					</div>
+
+					<!-- 計算結果 -->
+					<div class="grid md:grid-cols-3 gap-6 mt-8">
+						<div class="summary-card bg-white p-4 rounded-lg border border-gray-200">
+							<div class="flex justify-between items-center mb-2">
+								<span class="text-sm font-medium text-gray-500">代扣稅款</span>
+								<i class="fas fa-percentage text-gray-300"></i>
+							</div>
+							<div class="flex items-end">
+								<span class="text-2xl font-bold text-gray-800" id="taxDeduct">0</span>
+								<span class="ml-1 text-gray-500">NT$</span>
+							</div>
+						</div>
+
+						<div class="summary-card bg-white p-4 rounded-lg border border-gray-200">
+							<div class="flex justify-between items-center mb-2">
+								<span class="text-sm font-medium text-gray-500">二代健保費</span>
+								<i class="fas fa-heartbeat text-gray-300"></i>
+							</div>
+							<div class="flex items-end">
+								<span class="text-2xl font-bold text-gray-800" id="nhiDeduct">0</span>
+								<span class="ml-1 text-gray-500">NT$</span>
+							</div>
+						</div>
+
+						<div class="summary-card bg-white p-4 rounded-lg border border-primary-200 bg-primary-50">
+							<div class="flex justify-between items-center mb-2">
+								<span class="text-sm font-medium text-primary-600">應發淨額</span>
+								<i class="fas fa-wallet text-primary-300"></i>
+							</div>
+							<div class="flex items-end">
+								<span class="text-2xl font-bold text-primary-700" id="netPay">0</span>
+								<span class="ml-1 text-primary-500">NT$</span>
+							</div>
+						</div>
+					</div>
+				</section>
+
+				<!-- 4. 付款方式 -->
+				<section class="form-section p-6">
+					<div class="flex items-center mb-6">
+						<div class="step-badge bg-primary-100 text-primary-700 mr-3">4</div>
+						<h2 class="text-xl font-semibold text-gray-800">付款方式</h2>
+					</div>
+
+					<div class="flex flex-wrap gap-4 mb-6">
+						<label
+							class="radio-btn flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer flex-1 min-w-[120px]"
+						>
+							<input type="radio" name="payMethod" value="check" required class="sr-only" checked />
+							<span class="radio-label flex flex-col items-center">
+								<i class="fas fa-money-check-alt text-2xl mb-1"></i>
+								支票
+							</span>
+						</label>
+
+						<label
+							class="radio-btn flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer flex-1 min-w-[120px]"
+						>
+							<input type="radio" name="payMethod" value="bank" class="sr-only" />
+							<span class="radio-label flex flex-col items-center">
+								<i class="fas fa-university text-2xl mb-1"></i>
+								匯款
+							</span>
+						</label>
+
+						<label
+							class="radio-btn flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer flex-1 min-w-[120px]"
+						>
+							<input type="radio" name="payMethod" value="cash" class="sr-only" />
+							<span class="radio-label flex flex-col items-center">
+								<i class="fas fa-money-bill-wave text-2xl mb-1"></i>
+								現金
+							</span>
+						</label>
+					</div>
+
+					<!-- 現金選項 -->
+					<div id="cashOptions" class="hidden pl-4 border-l-4 border-accent-300 ml-4 mt-4">
+						<div class="cash-confirmation">
+							<input type="checkbox" id="cashConfirm" required />
+							<label for="cashConfirm" class="text-sm text-gray-700">已確認收到支付本人之報酬</label>
+						</div>
+					</div>
+
+					<!-- 支票選項 -->
+					<div id="checkOptions" class="hidden space-y-4 pl-4 border-l-4 border-accent-300 ml-4">
+						<div class="flex flex-wrap gap-4">
+							<label class="radio-btn flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer">
+								<input type="radio" name="checkReceive" value="pickup" class="sr-only" checked />
+								<span
+									class="radio-label flex items-center before:w-4 before:h-4 before:rounded-full before:border before:border-gray-300 before:mr-2"
+								>
+									親領
+								</span>
+							</label>
+
+							<label class="radio-btn flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer">
+								<input type="radio" name="checkReceive" value="registered" class="sr-only" />
+								<span
+									class="radio-label flex items-center before:w-4 before:h-4 before:rounded-full before:border before:border-gray-300 before:mr-2"
+								>
+									掛號
+								</span>
+							</label>
+						</div>
+
+						<div id="mailAddrBox" class="hidden">
+							<label for="mailAddr" class="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+								掛號寄送地址
+								<span class="text-red-500 ml-1">*</span>
+							</label>
+							<textarea
+								id="mailAddr"
+								class="w-full input-focus px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none"
+								rows="2"
+								placeholder="請輸入掛號寄送地址"
+							></textarea>
+						</div>
+					</div>
+
+					<!-- 匯款選項 -->
+					<div id="bankOptions" class="hidden grid md:grid-cols-2 gap-6 pl-4 border-l-4 border-accent-300 ml-4 mt-4">
+						<div>
+							<label for="bankName" class="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+								銀行
+								<span class="text-red-500 ml-1">*</span>
+							</label>
+							<div class="relative">
+								<input
+									id="bankName"
+									class="w-full input-focus px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none"
+									placeholder="例如：台灣銀行"
+								/>
+								<div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+									<i class="fas fa-landmark text-gray-400"></i>
+								</div>
+							</div>
+						</div>
+
+						<div>
+							<label for="bankBranch" class="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+								分行
+								<span class="text-red-500 ml-1">*</span>
+							</label>
+							<input
+								id="bankBranch"
+								class="w-full input-focus px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none"
+								placeholder="例如：中山分行"
+							/>
+						</div>
+
+						<div>
+							<label for="bankAccount" class="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+								帳號
+								<span class="text-red-500 ml-1">*</span>
+							</label>
+							<input
+								id="bankAccount"
+								class="w-full input-focus px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none"
+								placeholder="請輸入銀行帳號"
+							/>
+						</div>
+
+						<div>
+							<label for="bankHolder" class="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+								戶名
+								<span class="text-red-500 ml-1">*</span>
+							</label>
+							<input
+								id="bankHolder"
+								class="w-full input-focus px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none"
+								placeholder="請輸入帳戶持有人姓名"
+							/>
+						</div>
+
+						<div class="md:col-span-2">
+							<div class="text-xs text-gray-500 bg-yellow-50 p-2 rounded border border-yellow-100">
+								<i class="fas fa-exclamation-circle text-yellow-500 mr-1"></i>
+								非台北富邦銀行帳戶轉帳手續費須自付
+							</div>
+						</div>
+					</div>
+				</section>
+
+				<!-- 操作按鈕 -->
+				<section class="p-6 border-t border-gray-100 bg-gray-50">
+					<div class="flex flex-col sm:flex-row gap-4">
+						<button
+							type="button"
+							id="downloadBtn"
+							class="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg shadow-sm transition flex items-center justify-center gap-2 flex-1"
+						>
+							<i class="fas fa-file-pdf"></i>
+							產生PDF
+						</button>
+					</div>
+				</section>
+			</form>
+
+			<!-- 稅率規則說明 -->
+			<div class="mt-8 bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+				<h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+					<i class="fas fa-info-circle text-primary-500 mr-2"></i>
+					稅率與扣繳規則說明 (2025)
+				</h2>
+
+				<div class="grid md:grid-cols-2 gap-6">
+					<div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+						<h3 class="font-medium text-blue-800 mb-2 flex items-center">
+							<i class="fas fa-file-invoice-dollar mr-2"></i>
+							薪資所得 (50)
+						</h3>
+						<ul class="list-disc pl-5 space-y-1 text-sm text-gray-700">
+							<li>
+								單次給付超過
+								<span class="font-bold">88,501</span>
+								元，按
+								<span class="font-bold">5%</span>
+								扣繳
+							</li>
+							<li>未達門檻免扣繳</li>
+							<li>若計算稅額不超過 2,000 元，免扣繳</li>
+						</ul>
+					</div>
+
+					<div class="bg-purple-50 p-4 rounded-lg border border-purple-100">
+						<h3 class="font-medium text-purple-800 mb-2 flex items-center">
+							<i class="fas fa-file-alt mr-2"></i>
+							其他所得 (92)
+						</h3>
+						<ul class="list-disc pl-5 space-y-1 text-sm text-gray-700">
+							<li>
+								居住者按
+								<span class="font-bold">10%</span>
+								扣繳
+							</li>
+							<li>
+								非居住者或未在台居住按
+								<span class="font-bold">20%</span>
+								扣繳
+							</li>
+							<li>若計算稅額不超過 2,000 元，免扣繳</li>
+						</ul>
+					</div>
+
+					<div class="bg-green-50 p-4 rounded-lg border border-green-100 md:col-span-2">
+						<h3 class="font-medium text-green-800 mb-2 flex items-center">
+							<i class="fas fa-heartbeat mr-2"></i>
+							二代健保補充保費
+						</h3>
+						<ul class="list-disc pl-5 space-y-1 text-sm text-gray-700">
+							<li>
+								單次給付超過
+								<span class="font-bold">28,590</span>
+								元時，按
+								<span class="font-bold">2.11%</span>
+								扣取
+							</li>
+							<li>勾選「免扣」則不計算二代健保費</li>
+							<li>特定情況可免扣，如政府機關、公立學校等</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!--  -->
+		<!-- 匯出 JSON -->
+		<button
+			id="btnExportJson"
+			title="匯出 JSON"
+			class="fixed right-6 bottom-[6.5rem] w-14 h-14 rounded-full bg-gray-300/90 text-gray-700 shadow-lg flex flex-col items-center justify-center hover:bg-gray-400 transition"
+			onclick="exportFormJSON('#payoutForm')"
+		>
+			<i class="fas fa-download"></i>
+			<span class="text-[10px] leading-none mt-0.5">匯出</span>
+		</button>
+
+		<!-- 匯入 JSON（點擊觸發隱藏檔案選擇） -->
+		<button
+			id="btnImportJson"
+			title="匯入 JSON"
+			class="fixed right-6 bottom-6 w-14 h-14 rounded-full bg-gray-300/90 text-gray-700 shadow-lg flex flex-col items-center justify-center hover:bg-gray-400 transition"
+			onclick="document.getElementById('jsonFileInput').click()"
+		>
+			<i class="fas fa-upload"></i>
+			<span class="text-[10px] leading-none mt-0.5">匯入</span>
+		</button>
+
+		<!-- 隱藏檔案輸入（匯入用）-->
+		<input type="file" id="jsonFileInput" accept=".json" class="hidden" onchange="handleJSONFile(this)" />
+		<!--  -->
+
+		<script src="/script.js"></script>
+	</body>
+</html>

@@ -42,7 +42,7 @@ npm run build # 產生 dist/worker.js
 ⸻
 
 🗂️ 專案結構
-
+```
 taiwan-labor-receipt/
 ├── public/ # 靜態前端資源
 │ ├── index.html # 表單填寫頁面
@@ -54,7 +54,7 @@ taiwan-labor-receipt/
 ├── wrangler.toml # Cloudflare Workers 設定檔
 ├── package.json # 依賴管理
 └── README.md # 專案說明
-
+```
 ⸻
 
 ⚙️ 客製化指引
